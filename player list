@@ -1,0 +1,38 @@
+from requests
+from bs4 import BeautifulSoup
+import numpy as np 
+import pandas as pd
+
+headers = {'User-Agent': 
+           'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
+
+my_url = 'https://www.transfermarkt.com/juventus-turin/startseite/verein/506'
+pageTree = requests.get(my_url, headers=headers)
+pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
+
+Players = pageSoup.find_all("a", {"class" : "spielprofil_tooltip"} )
+Players[0].text
+
+Values = pageSoup.find_all("td", {"class" : "rechts"})
+Values[0].text
+
+PlayersList = []
+ValuesList = []
+
+for i in range(0,25):
+	PlayersList.append(Players[i].text)
+	ValuesList.append(Values[i].text)
+
+df = pd.DataFrame({"Players":PlayersList,"Values":ValuesList})
+
+df.head()
+
+# All table in one-go
+
+playerdata = pageSoup.find_all(class_='inline-table')
+
+names = [[x.find('img')['title'],
+         x.find_all(class_='spielprofil_tooltip')[-1].renderContents(),
+         x.find_all('tr')[-1].find('td').renderContents()] for x in playerdata]
+
+df = pd.DataFrame(names,columns=['Name','Short','Position'])
